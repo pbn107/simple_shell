@@ -64,18 +64,18 @@ int _unsetenv(char **args)
  * main - shell program
  * @argc: number of cmd arguments
  * @argv: array of cmd arguments
- * *envp: environment variables
+ * @envp: environment variables
  * Return: EXIT_SUCESS
  */
 
-int main(int argc, char **argv, char ** envp)
+int main(int argc, char **argv, char **envp)
 {
-	char *str = argv[argc-1];
+	char *str = argv[argc - 1];
 	char *args[100] = {NULL};
 	char line[1000];
 	ssize_t st;
-	
-	if (strcmp(str, "haha")== 0)
+
+	if (strcmp(str, "haha") == 0)
 		printf("yebo\n");
 
 	while (1)
