@@ -1,104 +1,105 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include "helpers.h"
 
-void get_commands(char * commands, char ** args);
-int get_line(char *buffer);
+/**
+ * exit_shell - exits the shell
+ * @args: array of strings
+ * Return: 0 or status code
+ */
 
-int main(int argc, char **argv, char **envp)
+int exit_shell(char **args)
 {
+	if (args[1] != NULL && args[2] == NULL)
+	{
+		int status = atoi(args[1]);
+
+		exit(status);
+	}
+	else if (args[1] == NULL)
+	{
+		exit(EXIT_SUCCESS);
+	}
+	perror("usage: exit or exit <exit code>\n");
+	exit(EXIT_FAILURE);
+}
+
+/**
+ * _setenv - sets an environmental variable
+ * @args: array of strings
+ * Return: always
+ */
+
+int _setenv(char **args)
+{
+	int res = setenv(args[1], args[2], 1);
+	char *str;
+
+	if (res == -1)
+	{
+		printf("Error: usage setenv VARIABLE VALUE\n");
+	}
+
+	str = getenv(args[1]);
+	printf("%s\n", str);
+	exit(EXIT_SUCCESS);
+}
+
+/**
+ * _unsetenv - removes an environment variable
+ * @args: string of arrays
+ * Return: EXIT_SUCCESS
+ */
+
+int _unsetenv(char **args)
+{
+	int res = unsetenv(args[1]);
+
+	if (res == -1)
+	{
+		printf("Error: usage unsetenv VARIABLE\n");
+	}
+	exit(EXIT_SUCCESS);
+}
+
+/**
+ * main - shell program
+ * @argc: number of cmd arguments
+ * @argv: array of cmd arguments
+ * *envp: environment variables
+ * Return: EXIT_SUCESS
+ */
+
+int main()
+{
+	extern char **environ;
+	char **envp = environ;
 	char *args[100] = {NULL};
-       	char line[1000];
+	char line[1000];
 	ssize_t st;
 
 	while (1)
 	{
-		pid_t id;
-		printf("cisfun$ "); 
-		fflush(stdout);
+		print_cursor();
+
 		st = get_line(line);
-
-		if (st <= 0)
-		{
-			printf("Error: could not read the command\n");
-			return -1;
-		}
 		get_commands(line, args);
-		if (strcmp("exit",args[0]) == 0)
-		{
-			break;
-		}
-		if (strcmp("env", args[0]) == 0)
-		{
-			int i = 0;
-			while(envp[i])
-			{
-				printf("%s\n",envp[i]);
-				i++;
-			}
-		}
 
-		id = fork();
-		if (id == 0)
+		if (strcmp("exit", args[0]) == 0)
+			exit_shell(args);
+		if (fork() == 0)
 		{
-			char path[100];
-			strcpy(path, "/bin/");
-			strcat(path, args[0]);
-			if (execve(path, args, NULL) == -1)
-				printf("./shell: No such file or diractory\n", args[0]);
-			exit(EXIT_FAILURE);
+			if (st <= 0)
+				exit(EXIT_FAILURE);
+			if (strcmp("setenv", args[0]) == 0)
+				_setenv(args);
+			if (strcmp("unsetenv", args[0]) == 0)
+				_unsetenv(args);
+			if (strcmp("env", args[0]) == 0)
+				_env(envp);
+
+			execute(args);
 		}
 		else
-		{
 			wait(NULL);
-		}
-
 	}
-	
-	return (0);
-}
-
-void get_commands(char *commands, char **args)
-{
-	int i = 0;
-	char * delim = strdup(" ");
-
-	args[i] = strtok(commands, delim);
-	for (i = 1; i < 100; i++)
-	{
-		args[i] = strtok(NULL, delim);
-		if (args[i] == NULL)
-		{
-			args[i] = NULL;
-			break;
-		}
-	}
-	return ;
-}
-
-int get_line(char *buffer)
-{
-	ssize_t n = 0;
-
-	while ((n = read(0, buffer, 1000)) > 0)
-	{
-		if (n > 1)
-		{
-			if (buffer[n - 1] == '\n')
-			{
-				buffer[n-1] = '\0';
-				break;
-			}
-		}
-		else
-		{
-			n = -1;
-			break;
-		}
-	}
-	return n;
+	exit(EXIT_SUCCESS);
 }
