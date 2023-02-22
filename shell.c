@@ -68,13 +68,15 @@ int _unsetenv(char **args)
  * Return: EXIT_SUCESS
  */
 
-int main()
+int main(int argc, char **argv, char ** envp)
 {
-	extern char **environ;
-	char **envp = environ;
+	char *str = argv[argc-1];
 	char *args[100] = {NULL};
 	char line[1000];
 	ssize_t st;
+	
+	if (strcmp(str, "haha")== 0)
+		printf("yebo\n");
 
 	while (1)
 	{
